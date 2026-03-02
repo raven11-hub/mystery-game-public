@@ -1,0 +1,29 @@
+.game-container {
+    position: relative;
+    width: 750px;
+    height: 750px;
+}
+
+.background {
+    position: absolute;
+    width: 750px;
+    height: 750px;
+    top: 0;
+    left: 0;
+}
+
+.tiles {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    display: grid;
+    grid-template-columns: repeat(3, 250px);
+    grid-template-rows: repeat(3, 250px);
+}
+
+.tiles img {
+    width: 250px;
+    height: 250px;
+    cursor: pointer;
+}
