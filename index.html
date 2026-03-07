@@ -3,29 +3,26 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mystery Game</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <div id="loading" style="text-align: center; padding: 50px; font-size: 20px;">
+        Now Loading
+    </div>
 
-    <div class="game-container">
-        <img src="assets/images/750x750.png" class="background" />
+    <div id="app-content" class="app-container" style="display: none;">
+        <div id="form-area" class="form-wrapper"></div>
+        <div class="game-container">
+            <img src="assets/images/750x750.png" class="background" alt="クリア画像" />
 
-        <div class="tiles">
-            <img src="assets/images/250x250_1.png" />
-            <img src="assets/images/250x250_2.png" />
-            <img src="assets/images/250x250_3.png" />
-            <img src="assets/images/250x250_4.png" />
-            <img src="assets/images/250x250_5.png" />
-            <img src="assets/images/250x250_6.png" />
-            <img src="assets/images/250x250_7.png" />
-            <img src="assets/images/250x250_8.png" />
-            <img src="assets/images/250x250_9.png" />
+            <div class="tiles"></div>
         </div>
     </div>
 
-    <script src="main.js"></script>
+    <script type="module" src="main.js"></script>
 
 </body>
 
