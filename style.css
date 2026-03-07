@@ -1,3 +1,144 @@
+/* 全体をスマホの中央に配置 */
+.app-container {
+    max-width: 500px;
+    /* スマホやタブレットで大きくなりすぎないように制限 */
+    margin: 0 auto;
+}
+
+/* ゲームボード（スマホ対応のレスポンシブな正方形） */
+.game-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    /* 縦横比を1:1（正方形）に固定する強力なCSS */
+    margin-bottom: 24px;
+    /* フォームとの間に余白をあける */
+}
+
+/* 背景画像（常に後ろにいる） */
+.background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 9枚のタイルを乗せるグリッド */
+.tiles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 画面幅に合わせて3等分 */
+    grid-template-rows: repeat(3, 1fr);
+}
+
+.tiles img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.5s ease;
+    /* 消えるときにフワッと消えるアニメーション */
+}
+
+/* JavaScriptでこのクラスを付与して画像を消す */
+.hidden-tile {
+    opacity: 0;
+    /* 透明にする */
+    pointer-events: none;
+    /* タップもできなくする */
+}
+
+/* フォーム全体のレイアウト */
+.form-wrapper {
+    max-width: 400px;
+    /* スマホ向けに幅を調整 */
+    margin: 20px auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* 入力欄とボタンの隙間 */
+}
+
+/* フローティングラベルのコンテナ */
+.input-container {
+    position: relative;
+    width: 100%;
+}
+
+/* 入力フィールド本体 */
+.input-container input {
+    width: 100%;
+    padding: 24px 12px 8px;
+    /* ラベルが上に逃げるための余白（上）を広く取る */
+    font-size: 16px;
+    /* ★超重要：スマホの自動ズームを防ぐ */
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    outline: none;
+    background-color: #f9f9f9;
+    transition: border-color 0.2s;
+}
+
+/* 入力中に枠線の色を変える */
+.input-container input:focus {
+    border-color: #007bff;
+    background-color: #fff;
+}
+
+/* フローティングラベル（初期状態） */
+.input-container label {
+    position: absolute;
+    top: 16px;
+    left: 14px;
+    font-size: 16px;
+    color: #888;
+    pointer-events: none;
+    /* ラベル越しにinputをタップできるようにする */
+    transition: all 0.2s ease-out;
+    /* スッと動くアニメーション */
+}
+
+/* 入力欄がフォーカスされた時、または文字が入力されている時 */
+/* :not(:placeholder-shown) を使うことで、文字が入っているか判定できます */
+.input-container input:focus+label,
+.input-container input:not(:placeholder-shown)+label {
+    top: 6px;
+    left: 12px;
+    font-size: 12px;
+    /* 上に移動した時に小さくする */
+    color: #007bff;
+    /* フォーカス時の色 */
+    font-weight: bold;
+}
+
+/* ボタンのデザイン（スマホで押しやすいように配慮） */
+.check-button {
+    width: 100%;
+    padding: 14px;
+    /* スマホでタップしやすい高さ（44px以上）を確保 */
+    font-size: 16px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.check-button:active {
+    background-color: #0056b3;
+    /* 押した時の色変化 */
+}
+
 .game-container {
     position: relative;
     width: 750px;
