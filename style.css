@@ -1,3 +1,4 @@
+/* ============================== 全体レイアウト ============================== */
 /* 全体をスマホの中央に配置 */
 .app-container {
     max-width: 500px;
@@ -28,22 +29,19 @@
 /* 9枚のタイルを乗せるグリッド */
 .tiles {
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    /* 画面幅に合わせて3等分 */
     grid-template-rows: repeat(3, 1fr);
+    pointer-events: none;
 }
 
+/* 消えるときにフワッと消えるアニメーション */
 .tiles img {
     width: 100%;
     height: 100%;
     object-fit: cover;
     transition: opacity 0.5s ease;
-    /* 消えるときにフワッと消えるアニメーション */
 }
 
 /* JavaScriptでこのクラスを付与して画像を消す */
@@ -54,117 +52,246 @@
     /* タップもできなくする */
 }
 
+/* ============================== 問題エリア（ページ型） ============================== */
 /* フォーム全体のレイアウト */
 .form-wrapper {
-    max-width: 400px;
-    /* スマホ向けに幅を調整 */
-    margin: 20px auto;
-    padding: 15px;
+    max-width: 420px;
+    margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    /* 入力欄とボタンの隙間 */
+    gap: 28px;
 }
 
-/* フローティングラベルのコンテナ */
-.input-container {
+/* --- 問題カード全体の調整 --- */
+.problem-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    /* 少し余裕を持たせる */
+    margin-bottom: 40px;
+    display: flex;
+    flex-direction: column;
+    /* 縦に並べる */
+    align-items: center;
+    /* 子要素を中央に寄せる */
+    text-align: center;
+    /* テキストも中央揃え */
+}
+
+/* 問題文中にあるさいころの画像
+/* サイコロのスタイル */
+.dice-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.dice-icon {
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+}
+
+
+/* ============================== 問題上部 ============================== */
+
+/* 上部エリア（画像とテキスト） */
+.problem-top {
+    display: flex;
+    flex-direction: column;
+    /* 縦並び */
+    align-items: center;
+    width: 100%;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* 問題画像の設定 */
+.problem-thumbnail {
+    width: 280px;
+    /* 少し大きく表示 */
+    height: auto;
+    /* アスペクト比を維持 */
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================== 問題文 ============================== */
+.problem-content-area {
+    width: 100%;
+}
+
+.problem-text {
+    margin: 0 0 8px 0;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+/* 追加メッセージ */
+/* コンテンツの初期非表示設定 */
+.hidden-content {
+    display: none;
+    color: #e74c3c;
+}
+
+.red-message {
+    color: #e74c3c;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+
+/* ============================== 入力フォーム ============================== */
+.problem-bottom {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    /* ★横並びから縦並びに変更 */
+    justify-content: center;
+    /* フォームを中央寄せ */
+    gap: 15px;
+}
+
+/* 入力欄の幅を少し調整 */
+.form-group {
+    max-width: 300px;
+    width: 100%;
+}
+
+/* コンテナを横並び（Flex）にする */
+.input-container.inline-form {
     position: relative;
-    width: 100%;
-}
-
-/* 入力フィールド本体 */
-.input-container input {
-    width: 100%;
-    padding: 24px 12px 8px;
-    /* ラベルが上に逃げるための余白（上）を広く取る */
-    font-size: 16px;
-    /* ★超重要：スマホの自動ズームを防ぐ */
+    display: flex;
+    align-items: center;
+    background-color: #f9f9f9;
     border: 2px solid #ccc;
     border-radius: 8px;
+    padding-right: 8px;
+    /* 右側に少し余白 */
+    transition: border-color 0.2s, background-color 0.2s;
     box-sizing: border-box;
-    outline: none;
-    background-color: #f9f9f9;
-    transition: border-color 0.2s;
+    /* 枠線を含めて幅を計算 */
+    overflow: hidden;
+    /* はみ出し防止 */
 }
 
-/* 入力中に枠線の色を変える */
-.input-container input:focus {
+/* 入力欄の設定 */
+.input-container.inline-form input {
+    flex: 1;
+    /* ボタン以外の残りの幅をすべて使う */
+    min-width: 0;
+    /* 【重要】これがないとflex内でinputが小さくなれず、はみ出します */
+    border: none !important;
+    background: transparent !important;
+    padding: 24px 12px 8px;
+    font-size: 16px;
+    outline: none;
+    z-index: 1;
+    /* ラベルの下、背景の上 */
+}
+
+/* フォーカス時に枠線の色を変える（親要素で制御） */
+.input-container.inline-form:focus-within {
     border-color: #007bff;
     background-color: #fff;
 }
 
-/* フローティングラベル（初期状態） */
-.input-container label {
+
+/* ラベルの位置微調整 */
+.input-container.inline-form label {
     position: absolute;
-    top: 16px;
     left: 14px;
+    top: 16px;
+    /* 初期位置 */
     font-size: 16px;
     color: #888;
-    pointer-events: none;
-    /* ラベル越しにinputをタップできるようにする */
+    /* ラベルを貫通してクリック可能にする */
     transition: all 0.2s ease-out;
-    /* スッと動くアニメーション */
+    /* アニメーション速度 */
 }
 
-/* 入力欄がフォーカスされた時、または文字が入力されている時 */
-/* :not(:placeholder-shown) を使うことで、文字が入っているか判定できます */
-.input-container input:focus+label,
-.input-container input:not(:placeholder-shown)+label {
-    top: 6px;
-    left: 12px;
-    font-size: 12px;
-    /* 上に移動した時に小さくする */
-    color: #007bff;
-    /* フォーカス時の色 */
-    font-weight: bold;
-}
-
-/* ボタンのデザイン（スマホで押しやすいように配慮） */
-.check-button {
-    width: 100%;
-    padding: 14px;
-    /* スマホでタップしやすい高さ（44px以上）を確保 */
-    font-size: 16px;
-    font-weight: bold;
-    color: #fff;
+/* 送信ボタンの設定 */
+.check-button-inline {
+    flex-shrink: 0;
+    /* 【重要】ボタンが圧縮されないように固定 */
     background-color: #007bff;
+    color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
+    padding: 0 16px;
+    /* 左右の余白 */
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.2s;
+    white-space: nowrap;
+    height: 36px;
+    /* 入力欄の高さに合わせた適切なサイズ */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 4px;
+    /* 入力欄との間のわずかな隙間 */
 }
 
-.check-button:active {
+/* input:not(:placeholder-shown) は「placeholderが消えている＝文字がある」という判定 */
+.input-container.inline-form input:focus+label,
+.input-container.inline-form input:not(:placeholder-shown)+label {
+    top: 4px;
+    /* 上にスライド */
+    left: 10px;
+    /* 少し左に寄せる */
+    font-size: 11px;
+    /* 小さくする */
+    color: #007bff;
+    /* 色を変える */
+    font-weight: bold;
+}
+
+.check-button-inline:active {
     background-color: #0056b3;
-    /* 押した時の色変化 */
 }
 
-.game-container {
-    position: relative;
-    width: 750px;
-    height: 750px;
+.check-button-inline:disabled {
+    background-color: #28a745;
+    /* 正解時は緑 */
+    cursor: default;
 }
 
-.background {
-    position: absolute;
-    width: 750px;
-    height: 750px;
-    top: 0;
-    left: 0;
+/* ============================== 最終問題専用エリア ============================== */
+
+/* 最終問題の入力エリア（画像とタイルのすぐ下に配置） */
+#final-form-container {
+    margin-top: 10px;
+    /* 画像との間の余白 */
+    padding: 20px;
+    background: #ffffff;
+    /* 白背景で見やすく */
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.tiles {
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    display: grid;
-    grid-template-columns: repeat(3, 250px);
-    grid-template-rows: repeat(3, 250px);
+/* 最終問題の中身（テキストやボタン）の並び */
+.final-problem-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
-.tiles img {
-    width: 250px;
-    height: 250px;
-    cursor: pointer;
+/* 最終問題の入力欄だけ色を変えて「特別感」を出す場合 */
+#final-form-container .input-container.inline-form {
+    border: 2px solid #ff4500;
+    /* オレンジ色の太い枠線 */
+}
+
+/* 最終問題のボタン色を変える場合 */
+#final-form-container .check-button-inline {
+    background-color: #ff4500;
 }

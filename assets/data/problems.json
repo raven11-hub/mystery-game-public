@@ -1,0 +1,283 @@
+{
+    "problems": [
+        {
+            "id": 1,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "鍵⇒サイクル"
+                },
+                {
+                    "type": "text",
+                    "value": "海⇒ミクロ"
+                },
+                {
+                    "type": "text",
+                    "value": "耳⇒クローン"
+                },
+                {
+                    "type": "text",
+                    "value": "空⇒？"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "ミサイル"
+                    ],
+                    "display": "ミサイル"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "・全てのマスを通ってSからGまで行け。"
+                },
+                {
+                    "type": "text",
+                    "value": "曲がらずに直線で通ったマスの上にある文字を順番に読め"
+                },
+                {
+                    "type": "text",
+                    "value": "黒く塗られた壁は通り抜けることができず、曲がるときはマスの中央で直角に曲がる。"
+                },
+                {
+                    "type": "text",
+                    "value": "曲がらずに直線で通ったマスの上にある文字を順番に読め"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "食中毒",
+                        "しょくちゅうどく",
+                        "ショクチュウドク"
+                    ],
+                    "display": "ショクチュウドク"
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "残ったカタカナを全て読め。"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "非常階段",
+                        "ヒジョウカイダン"
+                    ],
+                    "display": "ヒジョウカイダン"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "全てのイラストを２文字にして同じ文字消せ。"
+                },
+                {
+                    "type": "text",
+                    "value": "残った４文字を並び替えた単語が答え。"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "のらねこ",
+                        "ノラネコ"
+                    ],
+                    "display": "ノラネコ"
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "？に入る言葉を求めよ。"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "かーぶ",
+                        "カーブ"
+                    ],
+                    "display": "カーブ"
+                }
+            ]
+        },
+        {
+            "id": 6,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "？に入る言葉を求めよ。"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "ろーす",
+                        "ロース"
+                    ],
+                    "display": "ロース"
+                }
+            ]
+        },
+        {
+            "id": 7,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "２つの赤い数字がその数字番目のマスとなるように、\n全てのマスを一度ずつ通るようにしろ。"
+                },
+                {
+                    "type": "text",
+                    "value": "スタートを１マス目として４の倍数マス目の裏を読め。"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "ぎっくり腰",
+                        "ぎっくりごし",
+                        "ギックリゴシ"
+                    ],
+                    "display": "ギックリゴシ"
+                }
+            ]
+        },
+        {
+            "id": 8,
+            "type": "multi",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "①と②の間を読め"
+                },
+                {
+                    "type": "text",
+                    "value": "追加ルール：「カイテン」と書かれている列を２回回して、もう一度解け。",
+                    "hidden": true
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "たーん",
+                        "ターン"
+                    ],
+                    "display": "ターン",
+                    "extraMessage": "１回目の答えを見つけた！"
+                },
+                {
+                    "accept": [
+                        "すぴん",
+                        "スピン"
+                    ],
+                    "display": "スピン",
+                    "extraMessage": "２回目の答えを見つけた！"
+                }
+            ]
+        },
+        {
+            "id": 9,
+            "type": "normal",
+            "content": [
+                {
+                    "type": "dice",
+                    "value": [
+                        5,
+                        5,
+                        5,
+                        2
+                    ],
+                    "result": "ダイス"
+                },
+                {
+                    "type": "dice",
+                    "value": [
+                        6,
+                        6,
+                        2,
+                        2,
+                        1
+                    ],
+                    "result": "ブロック"
+                },
+                {
+                    "type": "dice",
+                    "value": [
+                        1,
+                        2,
+                        4,
+                        2,
+                        2,
+                        2,
+                        4
+                    ],
+                    "result": "立方体"
+                },
+                {
+                    "type": "dice",
+                    "value": [
+                        4,
+                        4,
+                        4,
+                        4,
+                        1
+                    ],
+                    "result": "？"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "スゴロク",
+                        "すごろく"
+                    ],
+                    "display": "スゴロク"
+                }
+            ]
+        },
+        {
+            "id": 999,
+            "type": "final",
+            "content": [
+                {
+                    "type": "text",
+                    "value": "すべての欠片が集まった。導き出される答えは？"
+                }
+            ],
+            "answers": [
+                {
+                    "accept": [
+                        "再構築",
+                        "サイコウチク",
+                        "さいこうちく"
+                    ],
+                    "display": "サイコウチク"
+                }
+            ]
+        }
+    ]
+}

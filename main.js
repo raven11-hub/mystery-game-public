@@ -1,119 +1,131 @@
-import { createForms } from './form.js'; // form.ts からインポート
-import { createTiles } from './tile.js'; // tile.tsからインポート
-// 各問題の「正解」を定義します
-const answers = {
-    1: "りんご", // 1番のフォームの正解
-    2: "みかん", // 2番のフォームの正解
-    3: "ぶどう",
-    4: "いちご",
-    5: "すいか",
-    6: "ばなな",
-    7: "めろん",
-    8: "きうい",
-    9: "もも"
-};
-// --- 画像の事前読み込み処理 ---
-function preloadImages() {
-    const imageUrls = [
-        "./assets/images/750x750.png",
-        // 1~9の画像を配列に追加
-        ...Array.from({ length: 9 }, (_, i) => `./assets/images/250x250_${i + 1}.png`)
-    ];
-    const promises = imageUrls.map(url => {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(); // 読み込み成功
-            img.onerror = () => resolve(); // 読み込み失敗
-            img.src = url;
-        });
-    });
-    return Promise.all(promises); // 全部の画像が読み込まれるまで待つ
+// main.ts
+// generateInputHtml を追加してインポートエラーを解消！
+import { createForms, generateInputHtml } from './form.js';
+import { gameData, loadGameData } from './data.js'; // loadGameDataをインポート
+import { createTiles } from './tile.js';
+function getSaveData() {
+    const data = localStorage.getItem('mysteryGameProgress');
+    return data ? JSON.parse(data) : {};
 }
-// --- LocalStorageから状態を復元 ---
-function restoreState() {
-    const savedData = localStorage.getItem(`clearedTiles`);
-    if (!savedData)
+function saveProgress(problemId, answeredCount) {
+    const data = getSaveData();
+    data[problemId] = answeredCount;
+    localStorage.setItem('mysteryGameProgress', JSON.stringify(data));
+}
+function applyCorrectState(problemId, ansIdx, isRestoring = false) {
+    const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
+    const button = document.querySelector(`.check-button-inline[data-id="${problemId}"][data-ans-idx="${ansIdx}"]`);
+    if (!inputElement || !button || !gameData)
+        return; // gameDataのnullチェックを追加
+    const problem = gameData.problems.find(p => p.id === problemId);
+    if (!problem)
         return;
-    // 保存されていた配列を取得
-    const clearedTiles = JSON.parse(savedData);
-    clearedTiles.forEach(index => {
-        // 画像を透明にする
-        const targetTile = document.getElementById(`tile-${index}`);
+    inputElement.disabled = true;
+    button.disabled = true;
+    button.textContent = "正解！";
+    button.style.backgroundColor = "#28a745";
+    if (isRestoring) {
+        inputElement.value = problem.answers[ansIdx].display;
+    }
+    const nextAnsIdx = ansIdx + 1;
+    if (nextAnsIdx < problem.answers.length) {
+        // 隠されていたコンテンツ（追加ルールなど）があれば全て表示する
+        const problemCard = document.getElementById(`problem-card-${problemId}`);
+        if (problemCard) {
+            const hiddenElements = problemCard.querySelectorAll('.hidden-content');
+            hiddenElements.forEach(el => el.classList.remove('hidden-content'));
+        }
+        if (problem.answers[ansIdx].extraMessage) {
+            const msgArea = document.getElementById(`extra-msg-area-${problemId}`);
+            if (msgArea && !document.getElementById(`msg-${problemId}-${ansIdx}`)) {
+                msgArea.innerHTML += `<p class="red-message" id="msg-${problemId}-${ansIdx}">${problem.answers[ansIdx].extraMessage}</p>`;
+            }
+        }
+        const inputsContainer = document.getElementById(`inputs-container-${problemId}`);
+        if (inputsContainer && !document.getElementById(`form-group-${problemId}-${nextAnsIdx}`)) {
+            inputsContainer.insertAdjacentHTML('beforeend', generateInputHtml(problemId, nextAnsIdx));
+        }
+    }
+    else {
+        const targetTile = document.getElementById(`tile-${problemId}`);
         if (targetTile)
             targetTile.classList.add('hidden-tile');
-        // フォームを正解済みの状態にする
-        const inputElement = document.getElementById(`answer-${index}`);
-        const button = document.querySelector(`.check-button[data-index="${index}"]`);
-        if (inputElement && button) {
-            inputElement.value = answers[index];
-            inputElement.disabled = true;
-            button.disabled = true;
-            button.textContent = "正解！";
-            button.style.backgroundColor = "#28a745";
+    }
+}
+function restoreState() {
+    const data = getSaveData();
+    for (const pIdStr in data) {
+        const problemId = parseInt(pIdStr, 10);
+        const answeredCount = data[problemId];
+        for (let i = 0; i < answeredCount; i++) {
+            applyCorrectState(problemId, i, true);
+        }
+    }
+}
+function setupEventListeners() {
+    const formArea = document.getElementById('form-area');
+    if (!formArea)
+        return;
+    formArea.addEventListener('click', (e) => {
+        // targetを「クリックされた要素から一番近いボタン」に設定し直す
+        const target = e.target.closest('.check-button-inline');
+        // targetが存在しない（ボタン以外をクリックした）場合は何もしない
+        if (!target) {
+            return;
+        }
+        if (target.classList.contains('check-button-inline')) {
+            const problemId = parseInt(target.getAttribute('data-id') || "0", 10);
+            const ansIdx = parseInt(target.getAttribute('data-ans-idx') || "0", 10);
+            const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
+            if (!inputElement || !gameData) {
+                return; // gameDataのnullチェック
+            }
+            const problem = gameData.problems.find(p => p.id === problemId);
+            if (!problem) {
+                return;
+            }
+            const userAnswer = inputElement.value.trim();
+            const currentAnswerData = problem.answers[ansIdx];
+            // setupEventListeners の中
+            if (currentAnswerData.accept.includes(userAnswer)) {
+                if (problem.type === 'final') {
+                    // 最終問題正解！クリア画面へ飛ばす
+                    window.location.href = "clear.html";
+                }
+                else {
+                    // 通常の問題正解
+                    applyCorrectState(problemId, ansIdx);
+                    saveProgress(problemId, ansIdx + 1);
+                }
+            }
+            else {
+                alert("残念！不正解です。");
+            }
         }
     });
 }
-// --- 正解した番号を保存 ---
-function saveState(index) {
-    const savedData = localStorage.getItem(`clearedTiles`);
-    const clearedTiles = savedData ? JSON.parse(savedData) : [];
-    if (!clearedTiles.includes(index)) {
-        clearedTiles.push(index);
-        localStorage.setItem(`clearedTiles`, JSON.stringify(clearedTiles)); // 文字列にして保存
-    }
-}
-// --- イベント登録 ---
-function setupEventListeners() {
-    const checkButtons = document.querySelectorAll('.check-button');
-    checkButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const index = button.getAttribute('data-index');
-            if (!index)
-                return;
-            const inputElement = document.getElementById(`answer-${index}`);
-            if (!inputElement)
-                return;
-            const userAnswer = inputElement.value.trim();
-            if (userAnswer === answers[index]) {
-                // 正解の処理
-                const targetTile = document.getElementById(`tile-${index}`);
-                if (targetTile)
-                    targetTile.classList.add('hidden-tile');
-                inputElement.disabled = true;
-                button.disabled = true;
-                button.textContent = "正解！";
-                button.style.backgroundColor = "#28a745";
-                // ★ ここでクリア状態を保存
-                saveState(index);
-            }
-            else {
-                alert("残念！不正解です。もう一度考えてみよう！");
-            }
-        });
-    });
-}
-// --- メイン処理（起動時に実行される） ---
+// ----------------------------------------------------
+// メイン初期化処理
+// ----------------------------------------------------
 async function init() {
-    try {
-        // 1. 画像の読み込みが全部終わるまで待機
-        await preloadImages();
-        // 2. ロード画面を消して、アプリ画面を表示
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('app-content').style.display = 'block';
-        // 3. 画像とフォームを生成する（ここでHTMLに追加される）
-        createTiles();
-        createForms();
-        // 4. LocalStorageを読み込んで前回正解分を復元する
-        restoreState();
-        // 5. 生成したボタンに対してクリックイベントを登録する
-        // ※必ず createForms() の後に実行すること！
-        setupEventListeners();
+    // 1. まずJSONデータを取得してくる
+    await loadGameData();
+    // もしJSONが読み込めなかったらエラーを出す
+    if (!gameData) {
+        alert("問題データの読み込みに失敗しました。ローカルサーバーで実行しているか確認してください。");
+        return;
     }
-    catch (error) {
-        console.error("画像の読み込みに失敗しました", error);
-        alert("エラーが発生しました。リロードしてください。");
-    }
+    // 2. 読み込み完了後、画面を表示してゲームを作る
+    const loadingEl = document.getElementById('loading');
+    if (loadingEl)
+        loadingEl.style.display = 'none';
+    const appContentEl = document.getElementById('app-content');
+    if (appContentEl)
+        appContentEl.style.display = 'block';
+    createTiles(); // tile.ts の処理を実行
+    createForms(); // JSONデータを元にフォームを作る
+    restoreState();
+    setupEventListeners();
 }
-// アプリケーション起動
 init();
 //# sourceMappingURL=main.js.map
