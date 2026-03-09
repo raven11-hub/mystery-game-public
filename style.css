@@ -304,3 +304,34 @@
 #final-form-container .check-button-inline {
     background-color: #0056b3;
 }
+
+/* クリア画像自体には触れないようにする（念のため） */
+.background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    /* ★画像そのものへの操作を無効化 */
+}
+
+/* ★保存防止ガードの設定 */
+.save-guard {
+    position: absolute;
+    inset: 0;
+    /* 四隅にぴったり合わせる */
+    z-index: 5;
+    /* 画像(0)とタイル(10)の間に置くか、一番上に置く */
+    background: rgba(0, 0, 0, 0);
+    /* 完全に透明 */
+    user-select: none;
+    -webkit-touch-callout: none;
+    /* スマホの長押しメニューを禁止 */
+}
+
+/* タイルが消えた後、ガードが一番上に来るように調整 */
+.tiles {
+    z-index: 10;
+}
