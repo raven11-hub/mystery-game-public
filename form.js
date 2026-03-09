@@ -59,7 +59,6 @@ export function createForms() {
                         <div class="problem-bottom" id="inputs-container-${p.id}">
                             ${generateInputHtml(p.id, 0)}
                         </div>
-                        <div id="extra-msg-area-${p.id}"></div>
                     </div>
                 `;
             }
@@ -74,7 +73,6 @@ export function createForms() {
                     <img src="assets/images/250x250_${p.id}.png" alt="問題${p.id}" class="problem-thumbnail">
                     <div class="problem-content-area">
                         ${generateContentHtml(p.content, p.id)}
-                        <div id="extra-msg-area-${p.id}"></div>
                     </div>
                 </div>
                 <div class="problem-bottom" id="inputs-container-${p.id}">  

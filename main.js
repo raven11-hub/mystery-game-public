@@ -35,12 +35,6 @@ function applyCorrectState(problemId, ansIdx, isRestoring = false) {
             const hiddenElements = problemCard.querySelectorAll('.hidden-content');
             hiddenElements.forEach(el => el.classList.remove('hidden-content'));
         }
-        if (problem.answers[ansIdx].extraMessage) {
-            const msgArea = document.getElementById(`extra-msg-area-${problemId}`);
-            if (msgArea && !document.getElementById(`msg-${problemId}-${ansIdx}`)) {
-                msgArea.innerHTML += `<p class="red-message" id="msg-${problemId}-${ansIdx}">${problem.answers[ansIdx].extraMessage}</p>`;
-            }
-        }
         const inputsContainer = document.getElementById(`inputs-container-${problemId}`);
         if (inputsContainer && !document.getElementById(`form-group-${problemId}-${nextAnsIdx}`)) {
             inputsContainer.insertAdjacentHTML('beforeend', generateInputHtml(problemId, nextAnsIdx));
@@ -73,46 +67,60 @@ function setupEventListeners() {
         // targetが存在しない（ボタン以外をクリックした）場合は何もしない
         if (!target)
             return;
-        if (target.classList.contains('check-button-inline')) {
-            const problemId = parseInt(target.getAttribute('data-id') || "0", 10);
-            const ansIdx = parseInt(target.getAttribute('data-ans-idx') || "0", 10);
-            const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
-            if (!inputElement || !gameData) {
-                return; // gameDataのnullチェック
-            }
-            const problem = gameData.problems.find(p => p.id === problemId);
-            if (!problem)
-                return;
-            const userAnswer = inputElement.value.trim();
-            const currentAnswerData = problem.answers[ansIdx];
-            // setupEventListeners の中
-            if (currentAnswerData.accept.includes(userAnswer)) {
+        const problemId = parseInt(target.getAttribute('data-id') || "0", 10);
+        const currentInputIdx = parseInt(target.getAttribute('data-ans-idx') || "0", 10);
+        const inputElement = document.getElementById(`answer-${problemId}-${currentInputIdx}`);
+        if (!inputElement || !gameData) {
+            return; // gameDataのnullチェック
+        }
+        const problem = gameData.problems.find(p => p.id === problemId);
+        if (!problem)
+            return;
+        const userAnswer = inputElement.value.trim();
+        // すでに正解済みの答えを特定するために、他の入力欄の値を集める
+        const alreadyCorrectAnswers = [];
+        for (let i = 0; i < currentInputIdx; i++) {
+            const prevInput = document.getElementById(`answer-${problemId}-${i}`);
+            if (prevInput)
+                alreadyCorrectAnswers.push(prevInput.value.trim());
+        }
+        // まだ使われていない正解データの中から、入力と一致するものを探す
+        const hitIdx = problem.answers.findIndex(ans => ans.accept.includes(userAnswer) && !alreadyCorrectAnswers.includes(ans.display));
+        if (hitIdx !== -1) {
+            // 正解！
+            const hitAnswerData = problem.answers[hitIdx];
+            // 入力欄の値を表示用の正式名称に書き換える（例：たーん → ターン）
+            inputElement.value = hitAnswerData.display;
+            // 正解状態の適用
+            // ※applyCorrectStateの中で「次の入力欄を出すかどうか」は 
+            // 「currentInputIdx + 1 < problem.answers.length」で判定する
+            applyCorrectState(problemId, currentInputIdx);
+            saveProgress(problemId, currentInputIdx + 1);
+            // 全て正解したらタイルを消す、または遷移
+            if (currentInputIdx + 1 === problem.answers.length) {
                 if (problem.type === 'final') {
-                    // 最終問題正解！クリア画面へ飛ばす
                     window.location.href = "clear.html";
                 }
-                else {
-                    // 通常の問題正解
-                    applyCorrectState(problemId, ansIdx);
-                    saveProgress(problemId, ansIdx + 1);
-                }
-            }
-            else {
-                // アラートを廃止し、ボタンを赤くして「不正解」にする処理
-                const originalText = target.textContent || "送信";
-                target.textContent = "不正解";
-                target.style.backgroundColor = "#e74c3c"; // ボタンを赤色に
-                target.disabled = true; // 連打防止
-                inputElement.value = ""; // すぐ再入力できるように入力欄を空にする
-                // 1.5秒後に元の状態に戻す
-                setTimeout(() => {
-                    target.textContent = originalText;
-                    target.style.backgroundColor = ""; // CSSの元の色に戻す
-                    target.disabled = false;
-                }, 1500);
             }
         }
+        else {
+            // 不正解処理（ボタンを赤くする等）
+            handleWrongAnswer(target, inputElement);
+        }
     });
+}
+// 不正解時の共通処理
+function handleWrongAnswer(button, input) {
+    const originalText = button.textContent || "送信";
+    button.textContent = "不正解";
+    button.style.backgroundColor = "#e74c3c";
+    button.disabled = true;
+    input.value = "";
+    setTimeout(() => {
+        button.textContent = originalText;
+        button.style.backgroundColor = "";
+        button.disabled = false;
+    }, 1500);
 }
 // ----------------------------------------------------
 // メイン初期化処理

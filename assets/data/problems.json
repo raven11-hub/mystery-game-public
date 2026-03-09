@@ -190,16 +190,14 @@
                         "たーん",
                         "ターン"
                     ],
-                    "display": "ターン",
-                    "extraMessage": "１回目の答えを見つけた！"
+                    "display": "ターン"
                 },
                 {
                     "accept": [
                         "すぴん",
                         "スピン"
                     ],
-                    "display": "スピン",
-                    "extraMessage": "２回目の答えを見つけた！"
+                    "display": "スピン"
                 }
             ]
         },
