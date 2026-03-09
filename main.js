@@ -63,16 +63,16 @@ function restoreState() {
     }
 }
 function setupEventListeners() {
-    const formArea = document.getElementById('form-area');
+    // 監視エリアを form-area から app-content に広げる
+    const formArea = document.getElementById('app-content');
     if (!formArea)
         return;
     formArea.addEventListener('click', (e) => {
         // targetを「クリックされた要素から一番近いボタン」に設定し直す
         const target = e.target.closest('.check-button-inline');
         // targetが存在しない（ボタン以外をクリックした）場合は何もしない
-        if (!target) {
+        if (!target)
             return;
-        }
         if (target.classList.contains('check-button-inline')) {
             const problemId = parseInt(target.getAttribute('data-id') || "0", 10);
             const ansIdx = parseInt(target.getAttribute('data-ans-idx') || "0", 10);
@@ -81,9 +81,8 @@ function setupEventListeners() {
                 return; // gameDataのnullチェック
             }
             const problem = gameData.problems.find(p => p.id === problemId);
-            if (!problem) {
+            if (!problem)
                 return;
-            }
             const userAnswer = inputElement.value.trim();
             const currentAnswerData = problem.answers[ansIdx];
             // setupEventListeners の中
@@ -99,7 +98,18 @@ function setupEventListeners() {
                 }
             }
             else {
-                alert("残念！不正解です。");
+                // アラートを廃止し、ボタンを赤くして「不正解」にする処理
+                const originalText = target.textContent || "送信";
+                target.textContent = "不正解";
+                target.style.backgroundColor = "#e74c3c"; // ボタンを赤色に
+                target.disabled = true; // 連打防止
+                inputElement.value = ""; // すぐ再入力できるように入力欄を空にする
+                // 1.5秒後に元の状態に戻す
+                setTimeout(() => {
+                    target.textContent = originalText;
+                    target.style.backgroundColor = ""; // CSSの元の色に戻す
+                    target.disabled = false;
+                }, 1500);
             }
         }
     });

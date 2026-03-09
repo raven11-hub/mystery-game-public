@@ -155,6 +155,7 @@
     justify-content: center;
     /* フォームを中央寄せ */
     gap: 15px;
+    align-items: center;
 }
 
 /* 入力欄の幅を少し調整 */
