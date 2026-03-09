@@ -14,6 +14,8 @@
     /* 縦横比を1:1（正方形）に固定する強力なCSS */
     margin-bottom: 24px;
     /* フォームとの間に余白をあける */
+    overflow: hidden;
+    /* ★中身がはみ出して高さを変えないようにガード */
 }
 
 /* 背景画像（常に後ろにいる） */
@@ -29,7 +31,11 @@
 /* 9枚のタイルを乗せるグリッド */
 .tiles {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* ★inset: 0 より height: 100% の方がスマホで安定します */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(3, 1fr);
@@ -267,6 +273,8 @@
 
 /* 最終問題の入力エリア（画像とタイルのすぐ下に配置） */
 #final-form-container {
+    position: relative;
+    /* ★絶対配置を解除 */
     margin-top: 10px;
     /* 画像との間の余白 */
     padding: 20px;
