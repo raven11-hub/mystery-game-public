@@ -1,3 +1,14 @@
+/* ============================== ページ背景（スクロール連動）============================== */
+
+body {
+    background-image: url("assets/images/background_loop.png");
+    background-repeat: repeat-y;
+    /* 縦にループ */
+    background-size: 100% auto;
+    /* 横幅を画面に合わせる */
+    background-position: top center;
+}
+
 /* ============================== 全体レイアウト ============================== */
 /* 全体をスマホの中央に配置 */
 .app-container {
@@ -70,8 +81,12 @@
 
 /* --- 問題カード全体の調整 --- */
 .problem-card {
-    background: #fff;
-    border-radius: 12px;
+    /* background: #fff; */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    border-radius: 16px;
     padding: 24px;
     /* 少し余裕を持たせる */
     margin-bottom: 40px;
@@ -82,6 +97,14 @@
     /* 子要素を中央に寄せる */
     text-align: center;
     /* テキストも中央揃え */
+
+    /* ★影を柔らかく、内側にも少し入れることで立体感を出す */
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.1),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+
+    /* ★背景となじませるために縁を少しだけ暗く */
+    border: 1px solid rgba(200, 200, 200, 0.3);
 }
 
 /* 問題文中にあるさいころの画像
@@ -185,6 +208,7 @@
     /* 枠線を含めて幅を計算 */
     overflow: hidden;
     /* はみ出し防止 */
+    background-color: rgba(240, 240, 240, 0.7) !important;
 }
 
 /* 入力欄の設定 */
@@ -278,12 +302,17 @@
     margin-top: 10px;
     /* 画像との間の余白 */
     padding: 20px;
-    background: #ffffff;
-    /* 白背景で見やすく */
-    border-radius: 12px;
+
+    /* カードと同じ半透明設定 */
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+
+    border-radius: 16px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     width: 100%;
     box-sizing: border-box;
+    border: 1px solid rgba(200, 200, 200, 0.3);
 }
 
 /* 最終問題の中身（テキストやボタン）の並び */
@@ -292,17 +321,6 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
-}
-
-/* 最終問題の入力欄だけ色を変えて「特別感」を出す場合 */
-#final-form-container .input-container.inline-form {
-    border: 2px solid #ff4500;
-    /* オレンジ色の太い枠線 */
-}
-
-/* 最終問題のボタン色を変える場合 */
-#final-form-container .check-button-inline {
-    background-color: #0056b3;
 }
 
 /* クリア画像自体には触れないようにする（念のため） */
