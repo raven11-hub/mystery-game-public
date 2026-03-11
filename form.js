@@ -34,6 +34,17 @@ export function generateInputHtml(problemId, answerIndex) {
         </div>
     `;
 }
+// ヒントボタン群を生成する関数
+function generateHintsHtml(problemId, hints) {
+    if (!hints || hints.length === 0)
+        return ''; // ヒントがない問題は何もしない
+    const buttonsHtml = hints.map((hints, index) => {
+        // 初期状態では１つ目のヒント(index 0)だけ押せるようにし、残りはdisabledにする。
+        const isDisabled = index === 0 ? '' : 'disabled';
+        return `<button type="button" class="hint-button" data-problem-id="${problemId}" data-hint-idx="${index}" ${isDisabled}>ヒント${index + 1}</button>`;
+    }).join('');
+    return `<div class="hints-container" id="hints-container-${problemId}">${buttonsHtml}</div>`;
+}
 export function createForms() {
     // 通常問題用のコンテナを取得する
     const formArea = document.getElementById("form-area");
@@ -59,6 +70,7 @@ export function createForms() {
                         <div class="problem-bottom" id="inputs-container-${p.id}">
                             ${generateInputHtml(p.id, 0)}
                         </div>
+                        ${generateHintsHtml(p.id, p.hints)}
                     </div>
                 `;
             }
@@ -78,6 +90,7 @@ export function createForms() {
                 <div class="problem-bottom" id="inputs-container-${p.id}">  
                     ${generateInputHtml(p.id, 0)}
                 </div>
+                ${generateHintsHtml(p.id, p.hints)}
             `;
             formArea.appendChild(container);
         }

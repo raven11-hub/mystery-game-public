@@ -4,13 +4,32 @@ import { createForms, generateInputHtml } from './form.js';
 import { gameData, loadGameData } from './data.js'; // loadGameDataをインポート
 import { createTiles } from './tile.js';
 function getSaveData() {
-    const data = localStorage.getItem('mysteryGameProgress');
-    return data ? JSON.parse(data) : {};
+    const dataStr = localStorage.getItem('mysteryGameSaveDataV2');
+    // 古い形式のセーブデータと互換性を持たせる
+    if (!dataStr) {
+        return { progress: {}, hints: {} }; // 新規プレイヤー
+    }
+    try {
+        const parsed = JSON.parse(dataStr);
+        // もし古い形式のデータだったら、新しい形式に変換してあげる
+        if (!parsed.progress || !parsed.hints) {
+            return { progress: parsed, hints: {} };
+        }
+        return parsed;
+    }
+    catch (e) {
+        return { progress: {}, hints: {} }; // エラー時は初期化
+    }
 }
 function saveProgress(problemId, answeredCount) {
     const data = getSaveData();
-    data[problemId] = answeredCount;
-    localStorage.setItem('mysteryGameProgress', JSON.stringify(data));
+    data.progress[problemId] = answeredCount;
+    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+}
+function saveHintProgress(problemId, unlockedCount) {
+    const data = getSaveData();
+    data.hints[problemId] = unlockedCount;
+    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
 }
 function applyCorrectState(problemId, ansIdx, isRestoring = false) {
     const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
@@ -48,31 +67,91 @@ function applyCorrectState(problemId, ansIdx, isRestoring = false) {
 }
 function restoreState() {
     const data = getSaveData();
-    for (const pIdStr in data) {
+    // 正解状態の復元
+    for (const pIdStr in data.progress) {
         const problemId = parseInt(pIdStr, 10);
-        const answeredCount = data[problemId];
+        const answeredCount = data.progress[problemId];
         for (let i = 0; i < answeredCount; i++) {
             applyCorrectState(problemId, i, true);
         }
     }
+    // ヒント状態の復元（解放済みのボタンを押せるようにする）
+    for (const pIdStr in data.hints) {
+        const problemId = parseInt(pIdStr, 10);
+        const unlockedCount = data.hints[problemId];
+        unlockHints(problemId, unlockedCount);
+    }
+}
+// ヒントボタンの disabled を解除する関数
+function unlockHints(problemId, unlockedCount) {
+    const container = document.getElementById(`hints-container-${problemId}`);
+    if (!container)
+        return;
+    const buttons = container.querySelectorAll('.hint-button');
+    buttons.forEach((btn, idx) => {
+        // 解放された数（unlockedCount）までは disabled を外す
+        // 例: unlockedCount が 1 なら、idx 0 (ヒント1) と idx 1 (ヒント2) が押せるようになる
+        if (idx <= unlockedCount) {
+            btn.disabled = false;
+        }
+    });
 }
 function setupEventListeners() {
-    // 監視エリアを form-area から app-content に広げる
-    const formArea = document.getElementById('app-content');
-    if (!formArea)
+    const appContent = document.getElementById('app-content');
+    if (!appContent)
         return;
-    formArea.addEventListener('click', (e) => {
-        // targetを「クリックされた要素から一番近いボタン」に設定し直す
-        const target = e.target.closest('.check-button-inline');
-        // targetが存在しない（ボタン以外をクリックした）場合は何もしない
-        if (!target)
-            return;
-        const problemId = parseInt(target.getAttribute('data-id') || "0", 10);
-        const currentInputIdx = parseInt(target.getAttribute('data-ans-idx') || "0", 10);
-        const inputElement = document.getElementById(`answer-${problemId}-${currentInputIdx}`);
-        if (!inputElement || !gameData) {
-            return; // gameDataのnullチェック
+    // --- ヒントモーダルを閉じる処理（独立させる） ---
+    const modal = document.getElementById('hint-modal');
+    const closeBtn = document.getElementById('hint-modal-close');
+    if (closeBtn && modal) {
+        closeBtn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+    }
+    // --- 画面全体のクリック監視（1つだけにする！） ---
+    appContent.addEventListener('click', (e) => {
+        const target = e.target;
+        // 【1】ヒントボタンが押された時の処理
+        const hintBtn = target.closest('.hint-button');
+        if (hintBtn) {
+            const problemId = parseInt(hintBtn.getAttribute('data-problem-id') || "0", 10);
+            const hintIdx = parseInt(hintBtn.getAttribute('data-hint-idx') || "0", 10);
+            const problem = gameData?.problems.find(p => p.id === problemId);
+            if (!problem || !problem.hints)
+                return;
+            const hintData = problem.hints[hintIdx];
+            const data = getSaveData();
+            const currentUnlocked = data.hints[problemId] || 0;
+            // まだこのヒントを解放していない場合のみ、確認ダイアログを出す
+            if (hintIdx >= currentUnlocked) {
+                const isConfirmed = confirm(`ヒント${hintIdx + 1}を開けますか？\n（一度開けると、以降は確認されません）`);
+                if (!isConfirmed)
+                    return; // キャンセルしたら何もしない
+                // 確認OKなら、解放状態を更新（このヒントを開けた = 次のヒントも押せるようにする）
+                const newUnlocked = hintIdx + 1;
+                saveHintProgress(problemId, newUnlocked);
+                unlockHints(problemId, newUnlocked);
+            }
+            // モーダルにヒントテキストをセットして表示
+            const modalTitle = document.getElementById('hint-modal-title');
+            const modalText = document.getElementById('hint-modal-text');
+            if (modalTitle && modalText && modal) {
+                modalTitle.textContent = `ヒント ${hintIdx + 1}`;
+                modalText.textContent = hintData.text;
+                modal.classList.remove('hidden');
+            }
+            return; // ここでリターンするので、下の送信ボタンの処理には行かない
         }
+        // 【2】送信（解答）ボタンが押された時の処理
+        const submitBtn = target.closest('.check-button-inline');
+        // 送信ボタン以外をクリックした場合はここで終了
+        if (!submitBtn)
+            return;
+        const problemId = parseInt(submitBtn.getAttribute('data-id') || "0", 10);
+        const currentInputIdx = parseInt(submitBtn.getAttribute('data-ans-idx') || "0", 10);
+        const inputElement = document.getElementById(`answer-${problemId}-${currentInputIdx}`);
+        if (!inputElement || !gameData)
+            return;
         const problem = gameData.problems.find(p => p.id === problemId);
         if (!problem)
             return;
@@ -89,11 +168,8 @@ function setupEventListeners() {
         if (hitIdx !== -1) {
             // 正解！
             const hitAnswerData = problem.answers[hitIdx];
-            // 入力欄の値を表示用の正式名称に書き換える（例：たーん → ターン）
             inputElement.value = hitAnswerData.display;
             // 正解状態の適用
-            // ※applyCorrectStateの中で「次の入力欄を出すかどうか」は 
-            // 「currentInputIdx + 1 < problem.answers.length」で判定する
             applyCorrectState(problemId, currentInputIdx);
             saveProgress(problemId, currentInputIdx + 1);
             // 全て正解したらタイルを消す、または遷移
@@ -104,8 +180,8 @@ function setupEventListeners() {
             }
         }
         else {
-            // 不正解処理（ボタンを赤くする等）
-            handleWrongAnswer(target, inputElement);
+            // 不正解処理
+            handleWrongAnswer(submitBtn, inputElement);
         }
     });
 }
