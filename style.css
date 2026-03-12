@@ -15,6 +15,7 @@ body {
     max-width: 500px;
     /* スマホやタブレットで大きくなりすぎないように制限 */
     margin: 0 auto;
+    padding-bottom: 80px;
 }
 
 /* ゲームボード（スマホ対応のレスポンシブな正方形） */
