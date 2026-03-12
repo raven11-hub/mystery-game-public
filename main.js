@@ -96,6 +96,37 @@ function unlockHints(problemId, unlockedCount) {
         }
     });
 }
+// --- 自作確認ダイアログの関数 ---
+function showCustomConfirm(message) {
+    return new Promise((resolve) => {
+        const confirmModal = document.getElementById('confirm-modal');
+        const confirmText = document.getElementById('confirm-modal-text');
+        const okBtn = document.getElementById('confirm-ok');
+        const cancelBtn = document.getElementById('confirm-cancel');
+        if (!confirmModal || !confirmText || !okBtn || !cancelBtn)
+            return resolve(false);
+        confirmText.textContent = message;
+        confirmModal.classList.remove('hidden');
+        // OKボタン
+        const onOk = () => {
+            cleanup();
+            resolve(true);
+        };
+        // キャンセルボタン
+        const onCancel = () => {
+            cleanup();
+            resolve(false);
+        };
+        // 後片付け
+        const cleanup = () => {
+            confirmModal.classList.add('hidden');
+            okBtn.removeEventListener('click', onOk);
+            cancelBtn.removeEventListener('click', onCancel);
+        };
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+    });
+}
 function setupEventListeners() {
     const appContent = document.getElementById('app-content');
     if (!appContent)
@@ -109,7 +140,7 @@ function setupEventListeners() {
         });
     }
     // --- 画面全体のクリック監視（1つだけにする！） ---
-    appContent.addEventListener('click', (e) => {
+    appContent.addEventListener('click', async (e) => {
         const target = e.target;
         // 【1】ヒントボタンが押された時の処理
         const hintBtn = target.closest('.hint-button');
@@ -124,7 +155,7 @@ function setupEventListeners() {
             const currentUnlocked = data.hints[problemId] || 0;
             // まだこのヒントを解放していない場合のみ、確認ダイアログを出す
             if (hintIdx >= currentUnlocked) {
-                const isConfirmed = confirm(`ヒント${hintIdx + 1}を開けますか？\n（一度開けると、以降は確認されません）`);
+                const isConfirmed = await showCustomConfirm(`ヒント${hintIdx + 1}を開けますか？\n（一度開けると、以降は確認されません）`);
                 if (!isConfirmed)
                     return; // キャンセルしたら何もしない
                 // 確認OKなら、解放状態を更新（このヒントを開けた = 次のヒントも押せるようにする）
