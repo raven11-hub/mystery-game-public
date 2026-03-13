@@ -4,7 +4,7 @@ import { createForms, generateInputHtml } from './form.js';
 import { gameData, loadGameData } from './data.js'; // loadGameDataをインポート
 import { createTiles } from './tile.js';
 function getSaveData() {
-    const dataStr = localStorage.getItem('mysteryGameSaveDataV2');
+    const dataStr = localStorage.getItem('mysteryGameSaveData');
     // 古い形式のセーブデータと互換性を持たせる
     if (!dataStr) {
         return { progress: {}, hints: {}, answers: {} }; // 新規プレイヤー
@@ -23,44 +23,55 @@ function getSaveData() {
         return { progress: {}, hints: {}, answers: {} };
     }
 }
-function saveProgress(problemId, answeredCount) {
+function saveProgress(problemId, inputIdx, answerIndex) {
     const data = getSaveData();
-    data.progress[problemId] = answeredCount;
-    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+    // その問題のデータがまだなければ、空の配列 [] で初期化
+    if (!data.progress[problemId]) {
+        data.progress[problemId] = []; // 数値ではなく配列で初期化
+    }
+    // 「入力欄の番号」のインデックスに、「正解データの番号」を直接代入する
+    data.progress[problemId][inputIdx] = answerIndex;
+    localStorage.setItem('mysteryGameSaveData', JSON.stringify(data));
 }
 function saveHintProgress(problemId, unlockedCount) {
     const data = getSaveData();
     data.hints[problemId] = unlockedCount;
-    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+    localStorage.setItem('mysteryGameSaveData', JSON.stringify(data));
 }
 // 答えの解放状態を保存する関数
 function saveAnswerUnlocked(problemId) {
     const data = getSaveData();
     data.answers[problemId] = true;
-    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+    localStorage.setItem('mysteryGameSaveData', JSON.stringify(data));
 }
 // 画像が切り替わった状態を保存する
 function saveBackgroundRevealed() {
     const data = getSaveData();
     data.isBackgroundRevealed = true;
-    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+    localStorage.setItem('mysteryGameSaveData', JSON.stringify(data));
 }
-function applyCorrectState(problemId, ansIdx, isRestoring = false) {
-    const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
-    const button = document.querySelector(`.check-button-inline[data-id="${problemId}"][data-ans-idx="${ansIdx}"]`);
+function applyCorrectState(problemId, inputIdx, answerIdx) {
+    // 1. gameData の存在チェックを一番最初に行う
+    if (!gameData)
+        return;
+    const problem = gameData.problems.find(p => p.id === problemId);
+    const inputElement = document.getElementById(`answer-${problemId}-${inputIdx}`);
+    // 2. ボタン要素をHTMLから取得する
+    const button = document.querySelector(`.check-button-inline[data-id="${problemId}"][data-ans-idx="${inputIdx}"]`);
     if (!inputElement || !button || !gameData)
         return; // gameDataのnullチェックを追加
-    const problem = gameData.problems.find(p => p.id === problemId);
     if (!problem)
         return;
     inputElement.disabled = true;
     button.disabled = true;
     button.textContent = "正解！";
     button.style.backgroundColor = "#28a745";
-    if (isRestoring) {
-        inputElement.value = problem.answers[ansIdx].display;
+    // 3. answerIdxが渡されているかで判定
+    if (answerIdx !== undefined && problem.answers[answerIdx]) {
+        inputElement.value = problem.answers[answerIdx].display;
     }
-    const nextAnsIdx = ansIdx + 1;
+    // 4. ansIdx ではなく inputIdx を使って次のフォーム番号を計算
+    const nextAnsIdx = inputIdx + 1;
     if (nextAnsIdx < problem.answers.length) {
         // 隠されていたコンテンツ（追加ルールなど）があれば全て表示する
         const problemCard = document.getElementById(`problem-card-${problemId}`);
@@ -84,9 +95,17 @@ function restoreState() {
     // 正解状態の復元
     for (const pIdStr in data.progress) {
         const problemId = parseInt(pIdStr, 10);
-        const answeredCount = data.progress[problemId];
-        for (let i = 0; i < answeredCount; i++) {
-            applyCorrectState(problemId, i, true);
+        const savedAnswers = data.progress[problemId];
+        // 配列の中身（正解した場所）を一つずつ復元
+        if (Array.isArray(savedAnswers)) {
+            // savedAnswersの中身は [1, 0] のような状態になっている
+            // answerIdx = 中身の数字（正解データ）、inputIdx = 配列の場所（入力欄）
+            savedAnswers.forEach((answerIdx, inputIdx) => {
+                // undefined や null でなければ復元を実行
+                if (answerIdx !== null && answerIdx !== undefined) {
+                    applyCorrectState(problemId, inputIdx, answerIdx);
+                }
+            });
         }
     }
     // ヒント状態の復元（解放済みのボタンを押せるようにする）
@@ -334,8 +353,8 @@ function setupEventListeners() {
             const hitAnswerData = problem.answers[hitIdx];
             inputElement.value = hitAnswerData.display;
             // 正解状態の適用
-            applyCorrectState(problemId, currentInputIdx);
-            saveProgress(problemId, currentInputIdx + 1);
+            applyCorrectState(problemId, currentInputIdx, hitIdx);
+            saveProgress(problemId, currentInputIdx, hitIdx);
             // 正解するたびに、すべてのタイルが開いたかチェックする！
             checkAllTilesOpened();
             // 全て正解したらタイルを消す、または遷移
