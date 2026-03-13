@@ -43,7 +43,11 @@
                     "id": 3,
                     "text": "アルファベットの裏側を読もう。\n空は英語でSKYなので、「S,K,Y」の裏側を読もう。"
                 }
-            ]
+            ],
+            "explanation": {
+                "text": "ああああああああああいいいいいいいいいい\nうううううううううう。",
+                "imagePath": "assets/images/explanation_1.png"
+            }
         },
         {
             "id": 2,

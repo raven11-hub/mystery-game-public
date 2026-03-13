@@ -45,6 +45,16 @@ function generateHintsHtml(problemId, hints) {
     }).join('');
     return `<div class="hints-container" id="hints-container-${problemId}">${buttonsHtml}</div>`;
 }
+// 答えを見るボタンを生成する関数
+function generateAnswerButtonHtml(problemId, hints) {
+    // ヒントが存在し、かつ1つ以上ある場合は最初は disabled（ロック）にする
+    const isDisabled = (hints && hints.length > 0) ? 'disabled' : '';
+    return `
+        <div class="answer-button-container">
+           <button type="button" class="show-answer-button" data-problem-id="${problemId}" ${isDisabled}>答えを見る</button>
+        </div>
+    `;
+}
 export function createForms() {
     // 通常問題用のコンテナを取得する
     const formArea = document.getElementById("form-area");
@@ -71,6 +81,7 @@ export function createForms() {
                             ${generateInputHtml(p.id, 0)}
                         </div>
                         ${generateHintsHtml(p.id, p.hints)}
+                        ${generateAnswerButtonHtml(p.id, p.hints)}
                     </div>
                 `;
             }
@@ -91,6 +102,7 @@ export function createForms() {
                     ${generateInputHtml(p.id, 0)}
                 </div>
                 ${generateHintsHtml(p.id, p.hints)}
+                ${generateAnswerButtonHtml(p.id, p.hints)}
             `;
             formArea.appendChild(container);
         }

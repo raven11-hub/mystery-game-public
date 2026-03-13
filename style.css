@@ -430,6 +430,55 @@ body {
     cursor: pointer;
 }
 
+/* ============================== 答えを見るボタン ============================== */
+
+.answer-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    /* ヒントボタンとの隙間 */
+}
+
+.show-answer-button {
+    background-color: #222;
+    /* 黒ベース */
+    color: #fff;
+    /* 白文字 */
+    border: none;
+    border-radius: 8px;
+    /* 入力フォームと合わせる */
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    max-width: 300px;
+    /* ★入力フォームの幅とピッタリ合わせる */
+    transition: background-color 0.2s, transform 0.1s;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.show-answer-button:hover {
+    background-color: #444;
+    /* ホバーで少し明るく */
+}
+
+.show-answer-button:active {
+    transform: translateY(2px);
+    /* 押した時のへこみ感 */
+    box-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+.show-answer-button:disabled {
+    background-color: #555;
+    color: #999;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    /* 押した時のへこみアニメーションも無効化 */
+}
+
 /* ============================== 最終問題専用エリア ============================== */
 
 /* 最終問題の入力エリア（画像とタイルのすぐ下に配置） */

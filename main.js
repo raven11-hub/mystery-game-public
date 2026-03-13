@@ -7,18 +7,19 @@ function getSaveData() {
     const dataStr = localStorage.getItem('mysteryGameSaveDataV2');
     // 古い形式のセーブデータと互換性を持たせる
     if (!dataStr) {
-        return { progress: {}, hints: {} }; // 新規プレイヤー
+        return { progress: {}, hints: {}, answers: {} }; // 新規プレイヤー
     }
     try {
         const parsed = JSON.parse(dataStr);
         // もし古い形式のデータだったら、新しい形式に変換してあげる
-        if (!parsed.progress || !parsed.hints) {
-            return { progress: parsed, hints: {} };
-        }
-        return parsed;
+        return {
+            progress: (parsed && typeof parsed.progress === 'object') ? parsed.progress : {},
+            hints: (parsed && typeof parsed.hints === 'object') ? parsed.hints : {},
+            answers: (parsed && typeof parsed.answers === 'object') ? parsed.answers : {} // ★追加
+        };
     }
     catch (e) {
-        return { progress: {}, hints: {} }; // エラー時は初期化
+        return { progress: {}, hints: {}, answers: {} };
     }
 }
 function saveProgress(problemId, answeredCount) {
@@ -29,6 +30,12 @@ function saveProgress(problemId, answeredCount) {
 function saveHintProgress(problemId, unlockedCount) {
     const data = getSaveData();
     data.hints[problemId] = unlockedCount;
+    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+}
+// 答えの解放状態を保存する関数
+function saveAnswerUnlocked(problemId) {
+    const data = getSaveData();
+    data.answers[problemId] = true;
     localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
 }
 function applyCorrectState(problemId, ansIdx, isRestoring = false) {
@@ -85,16 +92,25 @@ function restoreState() {
 // ヒントボタンの disabled を解除する関数
 function unlockHints(problemId, unlockedCount) {
     const container = document.getElementById(`hints-container-${problemId}`);
-    if (!container)
-        return;
-    const buttons = container.querySelectorAll('.hint-button');
-    buttons.forEach((btn, idx) => {
-        // 解放された数（unlockedCount）までは disabled を外す
-        // 例: unlockedCount が 1 なら、idx 0 (ヒント1) と idx 1 (ヒント2) が押せるようになる
-        if (idx <= unlockedCount) {
-            btn.disabled = false;
+    if (container) {
+        const buttons = container.querySelectorAll('.hint-button');
+        buttons.forEach((btn, idx) => {
+            if (idx <= unlockedCount) {
+                btn.disabled = false;
+            }
+        });
+    }
+    // ★追加：すべてのヒントを解放したかチェックして、答えボタンを有効化する
+    const problem = gameData?.problems.find(p => p.id === problemId);
+    if (problem && problem.hints) {
+        // 現在の解放数(unlockedCount)が、ヒントの総数と同じになったら
+        if (unlockedCount >= problem.hints.length) {
+            const answerBtn = document.querySelector(`.show-answer-button[data-problem-id="${problemId}"]`);
+            if (answerBtn) {
+                answerBtn.disabled = false; // 答えボタンのロック解除！
+            }
         }
-    });
+    }
 }
 // --- 自作確認ダイアログの関数 ---
 function showCustomConfirm(message) {
@@ -166,9 +182,69 @@ function setupEventListeners() {
             // モーダルにヒントテキストをセットして表示
             const modalTitle = document.getElementById('hint-modal-title');
             const modalText = document.getElementById('hint-modal-text');
+            const modalImage = document.getElementById('explanation-modal-image'); // ★追加
             if (modalTitle && modalText && modal) {
                 modalTitle.textContent = `ヒント ${hintIdx + 1}`;
+                modalTitle.style.color = '#f39c12'; // ★ヒントの時はオレンジ色に
                 modalText.textContent = hintData.text;
+                // ★ヒントの時は画像を隠す
+                if (modalImage) {
+                    modalImage.style.display = 'none';
+                    modalImage.src = '';
+                }
+                modal.classList.remove('hidden');
+            }
+            return; // ここでリターンするので、下の送信ボタンの処理には行かない
+        }
+        // 【1.5】答えを見るボタンが押された時の処理
+        const answerBtn = target.closest('.show-answer-button');
+        if (answerBtn) {
+            const problemId = parseInt(answerBtn.getAttribute('data-problem-id') || "0", 10);
+            const problem = gameData?.problems.find(p => p.id === problemId);
+            if (!problem || !problem.answers)
+                return;
+            const data = getSaveData();
+            const isAlreadyUnlocked = data.answers[problemId] || false; // ★保存状態を確認
+            // まだ解放していない場合のみ、確認ダイアログを出す
+            if (!isAlreadyUnlocked) {
+                const isConfirmed = await showCustomConfirm(`本当に答えを見ますか？\n（一度開けると、以降は確認されません）`);
+                if (!isConfirmed)
+                    return;
+                // OKなら保存する
+                saveAnswerUnlocked(problemId);
+            }
+            // JSONデータから答えのテキストを作成（答えが複数ある場合は改行でつなげる）
+            const answerTexts = problem.answers.map((ans, idx) => {
+                // 答えが複数ある（multi属性など）場合は「答え1: 〇〇」のようにする
+                if (problem.answers.length > 1) {
+                    return `答え${idx + 1}： ${ans.display}`;
+                }
+                return ans.display;
+            }).join('\n');
+            // ★追加：解説のテキストを作成
+            let explanationText = "";
+            if (problem.explanation) {
+                explanationText = `\n\n【解説】\n${problem.explanation.text}`;
+            }
+            // 既存のヒント用モーダルを使い回して答えを表示
+            const modal = document.getElementById('hint-modal');
+            const modalTitle = document.getElementById('hint-modal-title');
+            const modalText = document.getElementById('hint-modal-text');
+            const modalImage = document.getElementById('explanation-modal-image');
+            if (modalTitle && modalText && modal) {
+                modalTitle.textContent = `答え`;
+                modalTitle.style.color = '#e74c3c'; // ★答えの時は赤色にして警告感を出す
+                // ★答えと解説を合体させて表示
+                modalText.textContent = answerTexts + explanationText;
+                // ★追加：解説画像がある場合は表示する
+                if (problem.explanation && problem.explanation.imagePath) {
+                    modalImage.src = problem.explanation.imagePath;
+                    modalImage.style.display = 'block';
+                }
+                else {
+                    modalImage.style.display = 'none';
+                    modalImage.src = '';
+                }
                 modal.classList.remove('hidden');
             }
             return; // ここでリターンするので、下の送信ボタンの処理には行かない
