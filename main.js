@@ -15,7 +15,8 @@ function getSaveData() {
         return {
             progress: (parsed && typeof parsed.progress === 'object') ? parsed.progress : {},
             hints: (parsed && typeof parsed.hints === 'object') ? parsed.hints : {},
-            answers: (parsed && typeof parsed.answers === 'object') ? parsed.answers : {} // ★追加
+            answers: (parsed && typeof parsed.answers === 'object') ? parsed.answers : {},
+            isBackgroundRevealed: (parsed && typeof parsed.isBackgroundRevealed === 'boolean') ? parsed.isBackgroundRevealed : false
         };
     }
     catch (e) {
@@ -37,6 +38,12 @@ function saveAnswerUnlocked(problemId) {
     const data = getSaveData();
     data.answers[problemId] = true;
     localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
+}
+// 画像が切り替わった状態を保存する
+function saveBackgroundRevealed() {
+    const data = getSaveData();
+    data.isBackgroundRevealed = true;
+    localStorage.setItem('mysteryGameSaveDataV3', JSON.stringify(data));
 }
 function applyCorrectState(problemId, ansIdx, isRestoring = false) {
     const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
@@ -88,6 +95,18 @@ function restoreState() {
         const unlockedCount = data.hints[problemId];
         unlockHints(problemId, unlockedCount);
     }
+    const mainBg = document.getElementById('main-background');
+    const revealBtn = document.getElementById('reveal-last-image-btn');
+    if (data.isBackgroundRevealed) {
+        if (mainBg)
+            mainBg.src = 'assets/images/block_last.png';
+        if (revealBtn) {
+            revealBtn.disabled = true;
+            revealBtn.textContent = "解放済み";
+        }
+    }
+    // 最後にタイルが全開かチェック
+    checkAllTilesOpened();
 }
 // ヒントボタンの disabled を解除する関数
 function unlockHints(problemId, unlockedCount) {
@@ -100,7 +119,7 @@ function unlockHints(problemId, unlockedCount) {
             }
         });
     }
-    // ★追加：すべてのヒントを解放したかチェックして、答えボタンを有効化する
+    // すべてのヒントを解放したかチェックして、答えボタンを有効化する
     const problem = gameData?.problems.find(p => p.id === problemId);
     if (problem && problem.hints) {
         // 現在の解放数(unlockedCount)が、ヒントの総数と同じになったら
@@ -142,6 +161,16 @@ function showCustomConfirm(message) {
         okBtn.addEventListener('click', onOk);
         cancelBtn.addEventListener('click', onCancel);
     });
+}
+// 9枚のタイルがすべて消えているか確認し、ボタンを有効化する関数
+function checkAllTilesOpened() {
+    const allTiles = document.querySelectorAll('.tiles img');
+    const hiddenTiles = document.querySelectorAll('.hidden-tile');
+    const revealBtn = document.getElementById('reveal-last-image-btn');
+    // タイルが9枚あり、かつ全てが隠れて(hidden)いればボタンを解放
+    if (revealBtn && allTiles.length > 0 && allTiles.length === hiddenTiles.length) {
+        revealBtn.disabled = false;
+    }
 }
 function setupEventListeners() {
     const appContent = document.getElementById('app-content');
@@ -219,7 +248,7 @@ function setupEventListeners() {
                 // ★ここを修正：spanタグとクラスを付与
                 return `<span class="answer-highlight">${label}${ans.display}</span>`;
             }).join('\n');
-            // ★追加：解説のテキストを作成
+            // 解説のテキストを作成
             let explanationText = "";
             if (problem.explanation) {
                 explanationText = `【解説】\n${problem.explanation.text}`;
@@ -234,7 +263,7 @@ function setupEventListeners() {
                 modalTitle.style.color = '#000000'; // ★答えの時は赤色にして警告感を出す
                 // ★答えと解説を合体させて表示
                 modalText.innerHTML = answerTexts + explanationText.replace(/\n/g, '<br>');
-                // ★追加：解説画像がある場合は表示する
+                // 解説画像がある場合は表示する
                 if (problem.explanation && problem.explanation.imagePath) {
                     modalImage.src = problem.explanation.imagePath;
                     modalImage.style.display = 'block';
@@ -246,6 +275,25 @@ function setupEventListeners() {
                 modal.classList.remove('hidden');
             }
             return; // ここでリターンするので、下の送信ボタンの処理には行かない
+        }
+        // 【1.8】「すべて開けたら押せ」ボタンが押された時の処理
+        const revealBtnClicked = target.closest('#reveal-last-image-btn');
+        if (revealBtnClicked) {
+            const mainBg = document.getElementById('main-background');
+            if (!mainBg)
+                return;
+            // ボタンをもう押せないようにし、テキストを変える
+            revealBtnClicked.disabled = true;
+            revealBtnClicked.textContent = "解放済み";
+            // 状態をセーブ
+            saveBackgroundRevealed();
+            // アニメーション：一度透明にして、裏で画像を差し替え、また透明度を戻す
+            mainBg.style.opacity = '0'; // ふわっと消える
+            setTimeout(() => {
+                mainBg.src = 'assets/images/block_last.png'; // 画像をチェンジ
+                mainBg.style.opacity = '1'; // ふわっと現れる
+            }, 800); // 0.8秒待つ（CSSの transition 0.8s と合わせる）
+            return; // ここでリターン
         }
         // 【2】送信（解答）ボタンが押された時の処理
         const submitBtn = target.closest('.check-button-inline');
@@ -277,6 +325,8 @@ function setupEventListeners() {
             // 正解状態の適用
             applyCorrectState(problemId, currentInputIdx);
             saveProgress(problemId, currentInputIdx + 1);
+            // 正解するたびに、すべてのタイルが開いたかチェックする！
+            checkAllTilesOpened();
             // 全て正解したらタイルを消す、または遷移
             if (currentInputIdx + 1 === problem.answers.length) {
                 if (problem.type === 'final') {

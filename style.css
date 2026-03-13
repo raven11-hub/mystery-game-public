@@ -496,6 +496,37 @@ body {
     padding-bottom: 5px;
 }
 
+/* ============================== 最終画像切り替えボタン ============================== */
+.reveal-btn {
+    background-color: #443088;
+    /* ★指定の紫色 */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 20px;
+    /* 最終問題との間に少し隙間を空ける */
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* まだ9つの問題が終わっていない状態（グレー） */
+.reveal-btn:disabled {
+    background-color: #777;
+    color: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* ★画像がふわっと切り替わるための設定 */
+#main-background {
+    transition: opacity 0.8s ease-in-out;
+}
+
 /* ============================== 最終問題専用エリア ============================== */
 
 /* 最終問題の入力エリア（画像とタイルのすぐ下に配置） */

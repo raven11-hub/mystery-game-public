@@ -75,11 +75,14 @@ export function createForms() {
             // --- 最終問題の場合：game-containerの下に配置 ---
             if (finalFormContainer) {
                 finalFormContainer.innerHTML = `
+                    <button type="button" id="reveal-last-image-btn" class="reveal-btn" disabled>すべて開けたら押せ</button>
+
                     <div class="final-problem-content" id="problem-card-${p.id}">
                         ${generateContentHtml(p.content, p.id)}
                         <div class="problem-bottom" id="inputs-container-${p.id}">
                             ${generateInputHtml(p.id, 0)}
                         </div>
+                        <div id="extra-msg-area-${p.id}"></div>
                         ${generateHintsHtml(p.id, p.hints)}
                         ${generateAnswerButtonHtml(p.id, p.hints)}
                     </div>
