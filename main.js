@@ -43,7 +43,7 @@ function saveAnswerUnlocked(problemId) {
 function saveBackgroundRevealed() {
     const data = getSaveData();
     data.isBackgroundRevealed = true;
-    localStorage.setItem('mysteryGameSaveDataV3', JSON.stringify(data));
+    localStorage.setItem('mysteryGameSaveDataV2', JSON.stringify(data));
 }
 function applyCorrectState(problemId, ansIdx, isRestoring = false) {
     const inputElement = document.getElementById(`answer-${problemId}-${ansIdx}`);
@@ -98,8 +98,10 @@ function restoreState() {
     const mainBg = document.getElementById('main-background');
     const revealBtn = document.getElementById('reveal-last-image-btn');
     if (data.isBackgroundRevealed) {
+        // 画像を差し替え
         if (mainBg)
             mainBg.src = 'assets/images/block_last.png';
+        // ボタンを無効化し見た目を変える
         if (revealBtn) {
             revealBtn.disabled = true;
             revealBtn.textContent = "解放済み";
@@ -167,6 +169,15 @@ function checkAllTilesOpened() {
     const allTiles = document.querySelectorAll('.tiles img');
     const hiddenTiles = document.querySelectorAll('.hidden-tile');
     const revealBtn = document.getElementById('reveal-last-image-btn');
+    if (!revealBtn)
+        return;
+    // ★追加：すでに解放済みの場合は、これ以上何もしない（無効のままにする）
+    const data = getSaveData();
+    if (data.isBackgroundRevealed) {
+        revealBtn.disabled = true;
+        revealBtn.textContent = "解放済み";
+        return;
+    }
     // タイルが9枚あり、かつ全てが隠れて(hidden)いればボタンを解放
     if (revealBtn && allTiles.length > 0 && allTiles.length === hiddenTiles.length) {
         revealBtn.disabled = false;
