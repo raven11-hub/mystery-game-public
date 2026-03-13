@@ -317,12 +317,29 @@ function setupEventListeners() {
             revealBtnClicked.textContent = "解放済み";
             // 状態をセーブ
             saveBackgroundRevealed();
-            // アニメーション：一度透明にして、裏で画像を差し替え、また透明度を戻す
-            mainBg.style.opacity = '0'; // ふわっと消える
+            // 1. 新しい画像をあらかじめプリロード（裏で読み込み）しておく
+            const nextSrc = 'assets/images/block_last.png';
+            const tempImg = new Image();
+            tempImg.src = nextSrc;
+            // 2. まず透明にする
+            mainBg.style.opacity = '0';
+            // 3. 透明になりきった頃（CSS transitionが0.8sならそれ以降）に処理
             setTimeout(() => {
-                mainBg.src = 'assets/images/block_last.png'; // 画像をチェンジ
-                mainBg.style.opacity = '1'; // ふわっと現れる
-            }, 800); // 0.8秒待つ（CSSの transition 0.8s と合わせる）
+                // tempImgの読み込みが完了しているか確認してから差し替えるとより確実
+                const changeImage = () => {
+                    mainBg.src = nextSrc;
+                    // 画像が確実に切り替わる時間を極わずか（50ms程度）待ってから表示
+                    setTimeout(() => {
+                        mainBg.style.opacity = '1';
+                    }, 50);
+                };
+                if (tempImg.complete) {
+                    changeImage();
+                }
+                else {
+                    tempImg.onload = changeImage;
+                }
+            }, 850); // 透明になるのを待つ時間
             return; // ここでリターン
         }
         // 【2】送信（解答）ボタンが押された時の処理
