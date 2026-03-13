@@ -215,16 +215,14 @@ function setupEventListeners() {
             }
             // JSONデータから答えのテキストを作成（答えが複数ある場合は改行でつなげる）
             const answerTexts = problem.answers.map((ans, idx) => {
-                // 答えが複数ある（multi属性など）場合は「答え1: 〇〇」のようにする
-                if (problem.answers.length > 1) {
-                    return `答え${idx + 1}： ${ans.display}`;
-                }
-                return ans.display;
+                const label = problem.answers.length > 1 ? `答え${idx + 1}：` : `答え：`;
+                // ★ここを修正：spanタグとクラスを付与
+                return `<span class="answer-highlight">${label}${ans.display}</span>`;
             }).join('\n');
             // ★追加：解説のテキストを作成
             let explanationText = "";
             if (problem.explanation) {
-                explanationText = `\n\n【解説】\n${problem.explanation.text}`;
+                explanationText = `【解説】\n${problem.explanation.text}`;
             }
             // 既存のヒント用モーダルを使い回して答えを表示
             const modal = document.getElementById('hint-modal');
@@ -232,10 +230,10 @@ function setupEventListeners() {
             const modalText = document.getElementById('hint-modal-text');
             const modalImage = document.getElementById('explanation-modal-image');
             if (modalTitle && modalText && modal) {
-                modalTitle.textContent = `答え`;
-                modalTitle.style.color = '#e74c3c'; // ★答えの時は赤色にして警告感を出す
+                modalTitle.textContent = `答えと解説`;
+                modalTitle.style.color = '#000000'; // ★答えの時は赤色にして警告感を出す
                 // ★答えと解説を合体させて表示
-                modalText.textContent = answerTexts + explanationText;
+                modalText.innerHTML = answerTexts + explanationText.replace(/\n/g, '<br>');
                 // ★追加：解説画像がある場合は表示する
                 if (problem.explanation && problem.explanation.imagePath) {
                     modalImage.src = problem.explanation.imagePath;
