@@ -29,7 +29,7 @@
     /* アンケートボタン */
     .survey-button {
       display: inline-block;
-      margin-top: 40px;
+      margin-top: 20px;
       padding: 18px 30px;
       font-size: 18px;
       color: white;
@@ -37,6 +37,27 @@
       text-decoration: none;
       border-radius: 10px;
     }
+
+    /* QRコードの大きさと配置*/
+    .qr-code {
+      text-align: center;
+      margin: 10px auto;
+    }
+
+    .qr-code-caption {
+      font-size: 13px;
+      margin-bottom: 0;
+      margin-top: 0;
+      color: #333;
+      line-height: 1.2;
+    }
+
+    .qr-code img {
+      width: 155px;
+      max-width: 100%;
+      height: auto;
+    }
+
   </style>
 
 </head>
@@ -47,9 +68,16 @@
     <img src="./assets/images/CLEAR.webp" alt="クミナゾCLEAR">
   </div>
 
-  <a class="survey-button" href="https://forms.gle/qoZHzMXo6fBw4mQB8">
+  <a class="survey-button" href="https://forms.gle/2WziboUuQCVS4fhZA">
     アンケートはこちら
   </a>
+
+  <div class="qr-code">
+    <p class="qr-code-caption">
+      ↓こちらからでもアクセスできます
+    </p>
+    <img src="./assets/images/SHERLOCKHOMEQR.png" alt="アンケートのQRコード">
+  </div>
 
 </body>
 
